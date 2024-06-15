@@ -32,8 +32,10 @@ async function run() {
 
     const scholarshipCollection = client.db('scholarshipDB').collection('scholarship')
     const usersCollection = client.db('scholarshipDB').collection('users')
+    const paymentCollection = client.db("scholarshipDB").collection("payments");
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
 
     // middlewares 
     const verifyToken = (req, res, next) => {
