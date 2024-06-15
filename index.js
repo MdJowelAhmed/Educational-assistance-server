@@ -3,8 +3,8 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 require('dotenv').config()
 const jwt = require('jsonwebtoken')
-const app=express()
-const port=process.env.PORT || 5000;
+const app = express()
+const port = process.env.PORT || 5000;
 
 // middleWere
 app.use(cors())
@@ -29,43 +29,43 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    
-    const scholarshipCollection=client.db('scholarshipDB').collection('scholarship')
-    const usersCollection=client.db('scholarshipDB').collection('users')
+
+    const scholarshipCollection = client.db('scholarshipDB').collection('scholarship')
+    const usersCollection = client.db('scholarshipDB').collection('users')
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-       // middlewares 
-       const verifyToken = (req, res, next) => {
-        // console.log('inside verify token', req.headers.authorization);
-        if (!req.headers.authorization) {
-          return res.status(401).send({ message: 'unauthorized access' });
-        }
-        const token = req.headers.authorization.split(' ')[1];
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-          if (err) {
-            return res.status(401).send({ message: 'unauthorized access' })
-          }
-          req.decoded = decoded;
-          next();
-        })
+    // middlewares 
+    const verifyToken = (req, res, next) => {
+      // console.log('inside verify token', req.headers.authorization);
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: 'unauthorized access' });
       }
-  
-      // auth related api
-      app.post('/jwt', async (req, res) => {
-        const user = req.body;
-        const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
-        res.send({ token });
+      const token = req.headers.authorization.split(' ')[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ message: 'unauthorized access' })
+        }
+        req.decoded = decoded;
+        next();
       })
+    }
 
-    app.post('/scholarship',async(req,res)=>{
-      const scholarship=req.body
-      const result=await scholarshipCollection.insertOne(scholarship)
+    // auth related api
+    app.post('/jwt', async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      res.send({ token });
+    })
+
+    app.post('/scholarship', async (req, res) => {
+      const scholarship = req.body
+      const result = await scholarshipCollection.insertOne(scholarship)
       res.send(result)
     })
-    app.get('/scholarship',async(req,res)=>{
+    app.get('/scholarship', async (req, res) => {
       // const scholarship=req.body
-      const result=await scholarshipCollection.find().toArray()
+      const result = await scholarshipCollection.find().toArray()
       res.send(result)
     })
 
@@ -81,11 +81,28 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/detailsScholarship/:id',async(req,res)=>{
-      const id=req.params.id;
-      const query={_id:new ObjectId(id)}
-      const result=await scholarshipCollection.findOne(query)
+    app.get('/detailsScholarship/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await scholarshipCollection.findOne(query)
       res.send(result)
+    })
+
+    app.post('/create-payment-intent', async (req, res) => {
+      const totalFee = req.body.totalFee
+      const totalFeeInCent = parseFloat(totalFee) * 100
+      if (!totalFee || totalFeeInCent < 1) return
+      // generate clientSecret
+      const { client_secret } = await stripe.paymentIntents.create({
+        amount: totalFeeInCent,
+        currency: 'usd',
+        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      })
+      // send client secret as response
+      res.send({ clientSecret: client_secret })
     })
 
 
@@ -100,10 +117,10 @@ async function run() {
 run().catch(console.dir);
 
 
-app.get('/',(req,res)=>{
-    res.send('SCHOLARSHIP-IN-EUROPE-RUNNING')
+app.get('/', (req, res) => {
+  res.send('SCHOLARSHIP-IN-EUROPE-RUNNING')
 })
 
-app.listen(port,()=>{
-    console.log(`scholarship-in-europe on port ${port}`)
+app.listen(port, () => {
+  console.log(`scholarship-in-europe on port ${port}`)
 })
