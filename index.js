@@ -115,8 +115,9 @@ async function run() {
 
     // payment create 
     app.post('/create-payment-intent', async (req, res) => {
-      const {totalFee} = req.body
-      const amount = parseInt(totalFee * 100)
+      const {total} = req.body
+      console.log(total,req.body)
+      const amount = parseInt(total * 100)
       console.log(amount, 'amount inside the intent')
 
       const paymentIntent = await stripe.paymentIntents.create({
@@ -132,7 +133,7 @@ async function run() {
     app.post('/payments', async (req, res) => {
       const payment = req.body;
       const result = await paymentCollection.insertOne(payment);
-      res.send(result);
+      res.send({ result});
     })
 
     // Send a ping to confirm a successful connection
