@@ -55,7 +55,7 @@ async function run() {
 
      // verify admin middleware
      const verifyAdmin = async (req, res, next) => {
-      console.log('hello')
+      console.log('hello admin')
       const user = req.user
       const query = { email: user?.email }
       const result = await usersCollection.findOne(query)
@@ -68,7 +68,7 @@ async function run() {
 
      // verify moderator middleware
      const verifyModerator = async (req, res, next) => {
-      console.log('hello')
+      console.log('hello moderator')
       const user = req.user
       const query = { email: user?.email }
       const result = await usersCollection.findOne(query)
@@ -87,7 +87,7 @@ async function run() {
       res.send({ token });
     })
 
-    app.post('/scholarship', async (req, res) => {
+    app.post('/scholarship',verifyToken,verifyModerator, async (req, res) => {
       const scholarship = req.body
       const result = await scholarshipCollection.insertOne(scholarship)
       res.send(result)
@@ -97,6 +97,13 @@ async function run() {
       const result = await scholarshipCollection.find().toArray()
       res.send(result)
     })
+      // delete a scholarship
+      app.delete('/scholarship/:id', verifyToken, async (req, res) => {
+        const id = req.params.id
+        const query = { _id: new ObjectId(id) }
+        const result = await scholarshipCollection.deleteOne(query)
+        res.send(result)
+      })
 
     // user api 
     app.post('/users', async (req, res) => {
@@ -110,7 +117,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/users', async (req, res) => {
+    app.get('/users',verifyToken,verifyAdmin, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
@@ -135,13 +142,14 @@ async function run() {
 
     app.get('/detailsScholarship/:id', async (req, res) => {
       const id = req.params.id;
+      console.log(id)
       const query = { _id: new ObjectId(id) }
       const result = await scholarshipCollection.findOne(query)
       res.send(result)
     })
 
     // payment create 
-    app.post('/create-payment-intent', async (req, res) => {
+    app.post('/create-payment-intent',verifyToken, async (req, res) => {
       const {total} = req.body
       console.log(total,req.body)
       const amount = parseInt(total * 100)
@@ -157,7 +165,7 @@ async function run() {
       })
     })
 
-    app.post('/payments', async (req, res) => {
+    app.post('/payments',verifyToken, async (req, res) => {
       const payment = req.body;
       const result = await paymentCollection.insertOne(payment);
       res.send({ result});
