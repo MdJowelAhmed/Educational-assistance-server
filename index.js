@@ -87,16 +87,23 @@ async function run() {
       res.send({ token });
     })
 
-    app.post('/scholarship',verifyToken,verifyModerator, async (req, res) => {
+    app.post('/scholarship', async (req, res) => {
       const scholarship = req.body
       const result = await scholarshipCollection.insertOne(scholarship)
       res.send(result)
     })
     app.get('/scholarship', async (req, res) => {
-      // const scholarship=req.body
-      const result = await scholarshipCollection.find().toArray()
+     const size=parseInt(req.query.size)
+      const page=parseInt(req.query.page)-1
+      console.log(size,page)
+      const result = await scholarshipCollection.find().skip(page * size).limit(size).toArray()
       res.send(result)
     })
+    app.get('/countScholarship',async(req,res)=>{
+      const count=await scholarshipCollection.countDocuments()
+      res.send({count})
+    })
+
       // delete a scholarship
       app.delete('/scholarship/:id', verifyToken, async (req, res) => {
         const id = req.params.id
