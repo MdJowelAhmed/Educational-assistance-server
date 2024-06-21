@@ -34,7 +34,7 @@ async function run() {
     const paymentCollection = client.db('scholarshipDB').collection('payments')
     // const paymentCollection = client.db("scholarshipDB").collection("payments");
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
 
     // middlewares 
@@ -96,6 +96,7 @@ async function run() {
      const size=parseInt(req.query.size)
       const page=parseInt(req.query.page)-1
       console.log(size,page)
+      console.log('page',page)
       const result = await scholarshipCollection.find().skip(page * size).limit(size).toArray()
       res.send(result)
     })
@@ -179,7 +180,7 @@ async function run() {
     })
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
