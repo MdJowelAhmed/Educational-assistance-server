@@ -84,7 +84,7 @@ async function run() {
     // auth related api
     app.post('/jwt', async (req, res) => {
       const user = req.body;
-      console.log(user)
+      // console.log(user)
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
       console.log(token)
       res.send({ token });
@@ -106,6 +106,11 @@ async function run() {
     app.get('/countScholarship', async (req, res) => {
       const count = await scholarshipCollection.countDocuments()
       res.send({ count })
+    })
+
+    app.get('/scholarshipLimit',async(req,res)=>{
+      const result=await scholarshipCollection.find().sort({_id: -1}).limit(6).toArray()
+      res.send(result)
     })
 
     // delete a scholarship
